@@ -25,6 +25,7 @@ struct QR {
     static constexpr int N_DAT_CAPACITY = N_DAT_BITS >> 3;      // Capacity of [data + ecc] without remainder bits
 
     void print();
+    bool module(int x, int y);
     bool encode(const char *str, size_t len, ECC ecc, int mask = -1);
 private:
     bool encode_data(const char *data, size_t len, ECC ecc, uint8_t *out);
@@ -67,6 +68,13 @@ void QR<V>::print()
     } else {
         QR_PRINT("\n---Last encoding operation wasn't successful---\n");
     }
+}
+
+// Get color of a module from left-to-right and top-to-bottom. Black is true.
+template<int V>
+bool QR<V>::module(int x, int y)
+{
+    return get_bit(code, y * SIDE + x);
 }
 
 // Create QR code with given error correction level. If mask == -1, 

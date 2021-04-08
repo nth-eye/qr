@@ -27,4 +27,10 @@ int main(int, char**)
 
     printf("Manual mask 0: %d clock_t\n", 
         measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, 0));
+
+    for (int y = 0; y < decltype(qr)::SIDE; ++y) {
+        for (int x = 0; x < decltype(qr)::SIDE; ++x)
+            printf("%s", qr.module(x, y) ? "\u2588\u2588" : "  ");
+        printf("\n");
+    }
 }
