@@ -163,22 +163,22 @@ constexpr void GF_GenPoly(int degree, uint8_t *poly)
     
     uint8_t root = poly[degree - 1] = 1;
 
-	for (int i = 0; i < degree; ++i) {
-		for (int j = 0; j < degree - 1; ++j)
-			poly[j] = GF_Mul(poly[j], root) ^ poly[j + 1];
+    for (int i = 0; i < degree; ++i) {
+        for (int j = 0; j < degree - 1; ++j)
+            poly[j] = GF_Mul(poly[j], root) ^ poly[j + 1];
         poly[degree - 1] = GF_Mul(poly[degree - 1], root);
         root = (root << 1) ^ ((root >> 7) * 0x11d);
-	}
+    }
 }
 
 // Polynomial division if Galois Field.
 constexpr void GF_PolyDiv(const uint8_t *dividend, size_t len, const uint8_t *divisor, int degree, uint8_t *result) 
 {
-	memset(result, 0, degree);
+    memset(result, 0, degree);
 
-	for (int i = 0; i < len; ++i) {
+    for (int i = 0; i < len; ++i) {
 
-		uint8_t factor = dividend[i] ^ result[0];
+        uint8_t factor = dividend[i] ^ result[0];
 
         memmove(&result[0], &result[1], degree - 1);
 
@@ -186,7 +186,7 @@ constexpr void GF_PolyDiv(const uint8_t *dividend, size_t len, const uint8_t *di
 
         for (int j = 0; j < degree; ++j)
             result[j] ^= GF_Mul(divisor[j], factor);
-	}
+    }
 }
 
 #endif // QR_MISC_H

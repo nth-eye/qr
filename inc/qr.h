@@ -515,20 +515,20 @@ void QR<V>::apply_mask(int mask, const uint8_t *patterns)
             int coord = dy + x;
 
             if (get_bit(patterns, coord))
-				continue;
+                continue;
 
             bool keep = true;
 
-			switch (mask) {
-				case 0: keep = x + y & 1;                  break;
-				case 1: keep =  y & 1;                      break;
-				case 2: keep =  x % 3;                      break;
-				case 3: keep = (x + y) % 3;                 break;
-				case 4: keep =  y / 2 + x / 3 & 1;          break;
-				case 5: keep =  x * y  % 2 + x * y % 3;     break;
-				case 6: keep =  x * y  % 2 + x * y % 3 & 1; break;
-				case 7: keep = (x + y) % 2 + x * y % 3 & 1; break;
-			}
+            switch (mask) {
+                case 0: keep = x + y & 1;                  break;
+                case 1: keep =  y & 1;                      break;
+                case 2: keep =  x % 3;                      break;
+                case 3: keep = (x + y) % 3;                 break;
+                case 4: keep =  y / 2 + x / 3 & 1;          break;
+                case 5: keep =  x * y  % 2 + x * y % 3;     break;
+                case 6: keep =  x * y  % 2 + x * y % 3 & 1; break;
+                case 7: keep = (x + y) % 2 + x * y % 3 & 1; break;
+            }
 
             if (!keep) {
                 if (get_bit(code, coord))
