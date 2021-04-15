@@ -32,7 +32,7 @@ private:
     void encode_ecc(const uint8_t *data, ECC ecc, uint8_t *out);
 
     void add_data(const uint8_t *data, const uint8_t *patterns);
-    void add_patterns(ECC ecc);
+    void add_patterns();
     void add_version();
     void add_format(ECC ecc, int mask);
 
@@ -97,7 +97,7 @@ bool QR<V>::encode(const char *str, size_t len, ECC ecc, int mask)
     memcpy(code, patterns, N_BYTES);
 
     add_data(data_with_ecc, patterns);
-    add_patterns(ecc);
+    add_patterns();
     add_version();
 
     mask = mask != -1 ? mask & 7 : select_mask(ecc, patterns);
@@ -120,7 +120,7 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
 
     if (mode == M_NUMERIC) {
 
-        int i = 0, j;
+        size_t i = 0, j;
 
         while (i < len) {
 
@@ -144,12 +144,12 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
 
     } else if (mode == M_BYTE) {
 
-        for (int i = 0; i < len; ++i)
+        for (size_t i = 0; i < len; ++i)
             add_bits(data[i], 8, out, pos);
 
     } else {
 
-        for (int i = 0; i < len; i += 2) {
+        for (size_t i = 0; i < len; i += 2) {
             uint16_t val = ((uint8_t) data[i]) | (((uint8_t) data[i + 1]) << 8);
             uint16_t res = 0;
             val -= val < 0x9FFC ? 0x8140 : 0xC140;
@@ -170,9 +170,9 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
         return false;  // If data is too big for the version
     
     if (pos & 7)
-        add_bits(0, 8 - pos & 7, out, pos);
+        add_bits(0, (8 - pos) & 7, out, pos);
 
-    while (pos < n_bits)
+    while ((int) pos < n_bits)
         add_bits(++i & 1 ? 0xec : 0x11, 8, out, pos);
 
     return true;
@@ -252,7 +252,7 @@ void QR<V>::add_data(const uint8_t *data, const uint8_t *patterns)
 }
 
 template<int V>
-void QR<V>::add_patterns(ECC ecc)
+void QR<V>::add_patterns()
 {
     // White bounds inside finders
     draw_bound(1, 1, 5, 5, false, code);
@@ -528,11 +528,11 @@ void QR<V>::apply_mask(int mask, const uint8_t *patterns)
             bool keep = true;
 
             switch (mask) {
-                case 0: keep = x + y & 1;                  break;
+                case 0: keep = (x + y) & 1;                 break;
                 case 1: keep =  y & 1;                      break;
                 case 2: keep =  x % 3;                      break;
                 case 3: keep = (x + y) % 3;                 break;
-                case 4: keep =  y / 2 + x / 3 & 1;          break;
+                case 4: keep = (y / 2 + x / 3) & 1;         break;
                 case 5: keep =  x * y  % 2 + x * y % 3;     break;
                 case 6: keep =  x * y  % 2 + x * y % 3 & 1; break;
                 case 7: keep = (x + y) % 2 + x * y % 3 & 1; break;

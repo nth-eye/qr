@@ -22,10 +22,10 @@ int main(int, char**)
 
     QR<ver> qr;
 
-    printf("Automatic mask: %d clock_t\n", 
+    printf("Automatic mask: %ld clock_t\n", 
         measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, -1));
 
-    printf("Manual mask 0: %d clock_t\n", 
+    printf("Manual mask 0: %ld clock_t\n", 
         measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, 0));
 
     for (int y = 0; y < decltype(qr)::SIDE; ++y) {

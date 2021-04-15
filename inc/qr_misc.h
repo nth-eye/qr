@@ -80,7 +80,7 @@ constexpr int QR_Alphanumeric(char c)
 // Check if string can be encoded in alphanumeric mode.
 constexpr bool QR_IsAlphanumeric(const char *str, size_t len) 
 {
-    for (int i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
         if (QR_Alphanumeric(str[i]) == -1) 
             return false;
     return true;
@@ -89,7 +89,7 @@ constexpr bool QR_IsAlphanumeric(const char *str, size_t len)
 // Check if string can be encoded in numeric mode.
 constexpr bool QR_IsNumeric(const char *str, size_t len) 
 {
-    for (int i = 0; i < len; ++i)
+    for (size_t i = 0; i < len; ++i)
         if (str[i] < '0' || str[i] > '9') 
             return false;
     return true;
@@ -98,7 +98,7 @@ constexpr bool QR_IsNumeric(const char *str, size_t len)
 // Check if string can be encoded in kanji mode.
 constexpr bool QR_IsKanji(const char *str, size_t len) 
 {
-    for (int i = 0; i < len; i += 2) {
+    for (size_t i = 0; i < len; i += 2) {
 
         uint16_t val = ((uint8_t) str[i]) | (((uint8_t) str[i + 1]) << 8);
         
@@ -176,7 +176,7 @@ constexpr void GF_PolyDiv(const uint8_t *dividend, size_t len, const uint8_t *di
 {
     memset(result, 0, degree);
 
-    for (int i = 0; i < len; ++i) {
+    for (size_t i = 0; i < len; ++i) {
 
         uint8_t factor = dividend[i] ^ result[0];
 
