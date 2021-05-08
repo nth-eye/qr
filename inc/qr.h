@@ -36,8 +36,10 @@ private:
     void add_version();
     void add_format(ECC ecc, int mask);
 
-    void draw_rect(int y, int x, int height, int width, bool black, uint8_t *out);
-    void draw_bound(int y, int x, int height, int width, bool black, uint8_t *out);
+    template<bool Black>
+    void draw_rect(int y, int x, int height, int width, uint8_t *out);
+    template<bool Black>
+    void draw_bound(int y, int x, int height, int width, uint8_t *out);
 
     void reserve_patterns(uint8_t *out);
 
@@ -255,9 +257,9 @@ template<int V>
 void QR<V>::add_patterns()
 {
     // White bounds inside finders
-    draw_bound(1, 1, 5, 5, false, code);
-    draw_bound(1, SIDE - 6, 5, 5, false, code);
-    draw_bound(SIDE - 6, 1, 5, 5, false, code);
+    draw_bound<false>(1, 1, 5, 5, code);
+    draw_bound<false>(1, SIDE - 6, 5, 5, code);
+    draw_bound<false>(SIDE - 6, 1, 5, 5, code);
 
     // Finish alignment patterns
     for (int i = 0; i < N_ALIGN; ++i) {
@@ -266,17 +268,17 @@ void QR<V>::add_patterns()
                 (!i && j == N_ALIGN - 1) || 
                 (!j && i == N_ALIGN - 1) )
                 continue;
-            draw_bound(ALIGN_POS[V][i] - 1, ALIGN_POS[V][j] - 1, 3, 3, false, code);
+            draw_bound<false>(ALIGN_POS[V][i] - 1, ALIGN_POS[V][j] - 1, 3, 3, code);
         }
     }
 
     // Draw white separators
-    draw_rect(7, 0, 1, 8, false, code);
-    draw_rect(0, 7, 8, 1, false, code);
-    draw_rect(SIDE - 8, 0, 1, 8, false, code);
-    draw_rect(SIDE - 8, 7, 8, 1, false, code);
-    draw_rect(7, SIDE - 8, 1, 8, false, code);
-    draw_rect(0, SIDE - 8, 8, 1, false, code);
+    draw_rect<false>(7, 0, 1, 8, code);
+    draw_rect<false>(0, 7, 8, 1, code);
+    draw_rect<false>(SIDE - 8, 0, 1, 8, code);
+    draw_rect<false>(SIDE - 8, 7, 8, 1, code);
+    draw_rect<false>(7, SIDE - 8, 1, 8, code);
+    draw_rect<false>(0, SIDE - 8, 8, 1, code);
 
     // Perforate timing patterns
     for (int i = 7; i < SIDE - 7; i += 2) {
@@ -364,9 +366,10 @@ void QR<V>::add_format(ECC ecc, int mask)
 }
 
 template<int V>
-void QR<V>::draw_rect(int y, int x, int height, int width, bool black, uint8_t *out)
+template<bool B>
+void QR<V>::draw_rect(int y, int x, int height, int width, uint8_t *out)
 {
-    if (black) {
+    if (B) {
         for (int dy = y * SIDE; dy < (y + height) * SIDE; dy += SIDE)
             for (int dx = x; dx < x + width; ++dx) 
                 set_bit(out, dy + dx);
@@ -378,9 +381,10 @@ void QR<V>::draw_rect(int y, int x, int height, int width, bool black, uint8_t *
 }
 
 template<int V>
-void QR<V>::draw_bound(int y, int x, int height, int width, bool black, uint8_t *out)
+template<bool B>
+void QR<V>::draw_bound(int y, int x, int height, int width, uint8_t *out)
 {
-    if (black) {
+    if (B) {
         for (int i = y * SIDE + x;              i < y * SIDE + x+width;                 ++i)
             set_bit(out, i);
         for (int i = (y+height-1) * SIDE + x;   i < (y+height-1) * SIDE + x+width;      ++i)
@@ -404,12 +408,12 @@ void QR<V>::draw_bound(int y, int x, int height, int width, bool black, uint8_t 
 template<int V>
 void QR<V>::reserve_patterns(uint8_t *out)
 {
-    draw_rect(0, 6, SIDE, 1, true, out);
-    draw_rect(6, 0, 1, SIDE, true, out);
+    draw_rect<true>(0, 6, SIDE, 1, out);
+    draw_rect<true>(6, 0, 1, SIDE, out);
     
-    draw_rect(0, 0, 9, 9, true, out);
-    draw_rect(SIDE - 8, 0, 8, 9, true, out);
-    draw_rect(0, SIDE - 8, 9, 8, true, out);
+    draw_rect<true>(0, 0, 9, 9, out);
+    draw_rect<true>(SIDE - 8, 0, 8, 9, out);
+    draw_rect<true>(0, SIDE - 8, 9, 8, out);
 
     for (int i = 0; i < N_ALIGN; ++i) {
         for (int j = 0; j < N_ALIGN; ++j) {
@@ -417,13 +421,13 @@ void QR<V>::reserve_patterns(uint8_t *out)
                 (!i && j == N_ALIGN - 1) || 
                 (!j && i == N_ALIGN - 1) )
                 continue;
-            draw_rect(ALIGN_POS[V][i] - 2, ALIGN_POS[V][j] - 2, 5, 5, true, out);
+            draw_rect<true>(ALIGN_POS[V][i] - 2, ALIGN_POS[V][j] - 2, 5, 5, out);
         }
     }
 
     if (V >= 7) {
-        draw_rect(SIDE - 11, 0, 3, 6, true, out);
-        draw_rect(0, SIDE - 11, 6, 3, true, out);
+        draw_rect<true>(SIDE - 11, 0, 3, 6, out);
+        draw_rect<true>(0, SIDE - 11, 6, 3, out);
     }
 }
 
