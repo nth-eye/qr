@@ -114,7 +114,6 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
 {
     Mode mode = QR_SelectMode(data, len);
 
-    // Padding
     size_t n_bits = (N_DAT_CAPACITY - ECC_CODEWORDS_PER_BLOCK[ecc][V] * N_ECC_BLOCKS[ecc][V]) << 3;
     size_t pos = 0;
 
@@ -123,31 +122,40 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
 
     if (mode == M_NUMERIC) {
 
-        size_t i = 0, j;
+        const size_t triplets = len / 3;
+        const size_t triplets_size = triplets * 3;
+        const size_t rem = len % 3;
+        const size_t rem_bits = rem == 2 ? 7 : rem == 1 ? 4 : 0;
+        const size_t total_size = 10 * triplets + rem_bits;
 
-        while (i < len) {
+        if (pos + total_size > n_bits)
+            return false;
 
-            char buf[4];
+        char buf[4] = {};
 
-            for (j = 0; j < 3 && i < len; ++j, ++i)
-                buf[j] = data[i];
-            buf[j] = 0;
+        for (size_t i = 0; i < triplets_size; i += 3) {
+            buf[0] = data[i];
+            buf[1] = data[i + 1];
+            buf[2] = data[i + 2];
 
             uint16_t num = strtol(buf, NULL, 10);
+            add_bits(num, 10, out, pos);
+        }
 
-            size_t to_add = num < 100 ? num < 10 ? 4 : 7 : 10;
+        if (rem) {
+            buf[0] = data[triplets_size];
+            buf[1] = data[triplets_size + 1];
+            buf[rem] = 0;
 
-            if (pos + to_add > n_bits)
-                return false;
-
-            add_bits(num, to_add, out, pos);
+            uint16_t num = strtol(buf, NULL, 10);
+            add_bits(num, rem_bits, out, pos);
         }
     } else if (mode == M_ALPHANUMERIC) {
 
-        if (pos + 11 * ((int)(len & ~1) / 2) > n_bits)
+        if (pos + 11 * (int(len & ~1ul) / 2) > n_bits)
             return false;
 
-        for (int i = 0; i < (int)(len & ~1); i += 2) {
+        for (int i = 0; i < int(len & ~1ul); i += 2) {
             uint16_t num = QR_Alphanumeric(data[i]) * 45 + QR_Alphanumeric(data[i + 1]);
             add_bits(num, 11, out, pos);
         }
