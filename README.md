@@ -38,6 +38,7 @@ for (int y = 0; y < decltype(qr)::SIDE; ++y) {
 
 ## TODO
 
-- [ ] Add data length check in `encode_data()`
+- [x] Add data length check in `encode_data()`
+- [ ] Fix numeric mode
 
 [1]: https://github.com/nayuki/QR-Code-generator/tree/master/cpp

@@ -35,14 +35,13 @@ private:
     void add_patterns();
     void add_version();
     void add_format(ECC ecc, int mask);
+    void reserve_patterns(uint8_t *out);
 
     template<bool Black>
     void draw_rect(int y, int x, int height, int width, uint8_t *out);
     template<bool Black>
     void draw_bound(int y, int x, int height, int width, uint8_t *out);
-
-    void reserve_patterns(uint8_t *out);
-
+    
     template<bool Horizontal>
     int  rule_1_3_score();
     int  penalty_score();
@@ -115,6 +114,8 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
 {
     Mode mode = QR_SelectMode(data, len);
 
+    // Padding
+    size_t n_bits = (N_DAT_CAPACITY - ECC_CODEWORDS_PER_BLOCK[ecc][V] * N_ECC_BLOCKS[ecc][V]) << 3;
     size_t pos = 0;
 
     add_bits(1 << mode, 4, out, pos);
@@ -133,23 +134,42 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
             buf[j] = 0;
 
             uint16_t num = strtol(buf, NULL, 10);
-            add_bits(num, num < 100 ? num < 10 ? 4 : 7 : 10, out, pos);
+
+            size_t to_add = num < 100 ? num < 10 ? 4 : 7 : 10;
+
+            if (pos + to_add > n_bits)
+                return false;
+
+            add_bits(num, to_add, out, pos);
         }
     } else if (mode == M_ALPHANUMERIC) {
+
+        if (pos + 11 * ((int)(len & ~1) / 2) > n_bits)
+            return false;
 
         for (int i = 0; i < (int)(len & ~1); i += 2) {
             uint16_t num = QR_Alphanumeric(data[i]) * 45 + QR_Alphanumeric(data[i + 1]);
             add_bits(num, 11, out, pos);
         }
-        if (len & 1)
+        if (len & 1) {
+            if (pos + 6 > n_bits)
+                return false;
+
             add_bits(QR_Alphanumeric(data[len - 1]), 6, out, pos);
+        }
 
     } else if (mode == M_BYTE) {
+
+        if (pos + len * 8 > n_bits)
+            return false;
 
         for (size_t i = 0; i < len; ++i)
             add_bits(data[i], 8, out, pos);
 
     } else {
+
+        if (pos + 13 * (len / 2) > n_bits)
+            return false;
 
         for (size_t i = 0; i < len; i += 2) {
             uint16_t val = ((uint8_t) data[i]) | (((uint8_t) data[i + 1]) << 8);
@@ -161,20 +181,15 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
         }
     }
 
-    // Padding
-    int n_bits = (N_DAT_CAPACITY - ECC_CODEWORDS_PER_BLOCK[ecc][V] * N_ECC_BLOCKS[ecc][V]) << 3;
-    int padding = n_bits - pos;
-    int i = 0;
+    size_t padding = n_bits - pos;
+    size_t i = 0;
 
-    if (padding >= 0)
-        add_bits(0, padding > 4 ? 4 : padding, out, pos);
-    else 
-        return false;  // If data is too big for the version
+    add_bits(0, padding > 4 ? 4 : padding, out, pos);
     
     if (pos & 7)
         add_bits(0, (8 - pos) & 7, out, pos);
 
-    while ((int) pos < n_bits)
+    while (pos < n_bits)
         add_bits(++i & 1 ? 0xec : 0x11, 8, out, pos);
 
     return true;
