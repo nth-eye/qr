@@ -6,6 +6,8 @@
 
 #include "qr_tables.h"
 
+namespace qr {
+
 enum ECC { L, M, Q, H };
 
 enum Mode { 
@@ -55,7 +57,7 @@ constexpr int bytes(int n_bits)
 }
 
 // Translate char to alphanumeric encoding value,
-constexpr int QR_Alphanumeric(char c)
+constexpr int alphanumeric(char c)
 {
     if (c >= '0' && c <= '9') 
         return c - '0';
@@ -78,16 +80,16 @@ constexpr int QR_Alphanumeric(char c)
 }
 
 // Check if string can be encoded in alphanumeric mode.
-constexpr bool QR_IsAlphanumeric(const char *str, size_t len) 
+constexpr bool is_alphanumeric(const char *str, size_t len) 
 {
     for (size_t i = 0; i < len; ++i)
-        if (QR_Alphanumeric(str[i]) == -1) 
+        if (alphanumeric(str[i]) == -1) 
             return false;
     return true;
 }
 
 // Check if string can be encoded in numeric mode.
-constexpr bool QR_IsNumeric(const char *str, size_t len) 
+constexpr bool is_numeric(const char *str, size_t len) 
 {
     for (size_t i = 0; i < len; ++i)
         if (str[i] < '0' || str[i] > '9') 
@@ -96,7 +98,7 @@ constexpr bool QR_IsNumeric(const char *str, size_t len)
 }
 
 // Check if string can be encoded in kanji mode.
-constexpr bool QR_IsKanji(const char *str, size_t len) 
+constexpr bool is_kanji(const char *str, size_t len) 
 {
     for (size_t i = 0; i < len; i += 2) {
 
@@ -109,22 +111,22 @@ constexpr bool QR_IsKanji(const char *str, size_t len)
 }
 
 // Select appropriate encoding mode for string.
-constexpr Mode QR_SelectMode(const char *str, size_t len)
+constexpr Mode select_mode(const char *str, size_t len)
 {
-    if (QR_IsNumeric(str, len))
+    if (is_numeric(str, len))
         return M_NUMERIC;
     
-    if (QR_IsAlphanumeric(str, len))
+    if (is_alphanumeric(str, len))
         return M_ALPHANUMERIC;
 
-    if (QR_IsKanji(str, len))
+    if (is_kanji(str, len))
         return M_KANJI;
 
     return M_BYTE;
 }
 
 // Return size of Character Control Indicator in bits for given version and mode.
-constexpr int QR_CCI(int ver, Mode mode)
+constexpr int cci(int ver, Mode mode)
 {
     constexpr int cnt[4][3] = {
         { 10, 12, 14 },
@@ -143,7 +145,7 @@ constexpr int QR_CCI(int ver, Mode mode)
 }
 
 // Galois Field multiplication using Russian Peasant Multiplication algorithm.
-constexpr uint8_t GF_Mul(uint8_t x, uint8_t y) 
+constexpr uint8_t gf_mul(uint8_t x, uint8_t y) 
 {
     uint8_t r = 0; 
 
@@ -157,7 +159,7 @@ constexpr uint8_t GF_Mul(uint8_t x, uint8_t y)
 }
 
 // Reed-Solomon ECC generator polynomial for the given degree.
-constexpr void GF_GenPoly(int degree, uint8_t *poly)
+constexpr void gf_gen_poly(int degree, uint8_t *poly)
 {
     memset(poly, 0, degree);
     
@@ -165,14 +167,14 @@ constexpr void GF_GenPoly(int degree, uint8_t *poly)
 
     for (int i = 0; i < degree; ++i) {
         for (int j = 0; j < degree - 1; ++j)
-            poly[j] = GF_Mul(poly[j], root) ^ poly[j + 1];
-        poly[degree - 1] = GF_Mul(poly[degree - 1], root);
+            poly[j] = gf_mul(poly[j], root) ^ poly[j + 1];
+        poly[degree - 1] = gf_mul(poly[degree - 1], root);
         root = (root << 1) ^ ((root >> 7) * 0x11d);
     }
 }
 
 // Polynomial division if Galois Field.
-constexpr void GF_PolyDiv(const uint8_t *dividend, size_t len, const uint8_t *divisor, int degree, uint8_t *result) 
+constexpr void gf_poly_div(const uint8_t *dividend, size_t len, const uint8_t *divisor, int degree, uint8_t *result) 
 {
     memset(result, 0, degree);
 
@@ -185,8 +187,10 @@ constexpr void GF_PolyDiv(const uint8_t *dividend, size_t len, const uint8_t *di
         result[degree - 1] = 0;
 
         for (int j = 0; j < degree; ++j)
-            result[j] ^= GF_Mul(divisor[j], factor);
+            result[j] ^= gf_mul(divisor[j], factor);
     }
 }
 
-#endif // QR_MISC_H
+}
+
+#endif

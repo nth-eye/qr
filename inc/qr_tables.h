@@ -1,6 +1,8 @@
 #ifndef QR_TABLES_H
 #define QR_TABLES_H
 
+namespace qr {
+
 // Size of ECC block with respoect to level and version. 0 version is for padding.
 constexpr int ECC_CODEWORDS_PER_BLOCK[4][41] = {
     { 0,  7, 10, 15, 20, 26, 18, 20, 24, 30, 18, 20, 24, 26, 30, 22, 24, 28, 30, 28, 28, 28, 28, 30, 30, 26, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30 }, 
@@ -62,4 +64,6 @@ constexpr int ALIGN_POS[41][7] = {
     { 6, 30, 58, 86, 114, 142, 170 },
 };
 
-#endif // QR_TABLES_H
+}
+
+#endif

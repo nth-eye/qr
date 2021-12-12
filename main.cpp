@@ -16,6 +16,8 @@ clock_t measure_time(Fn &&fn, Ptr *ptr, Args &&...args)
 
 int main(int, char**) 
 {
+    using namespace qr;
+    
     constexpr int ver = 3;
     constexpr ECC ecc = ECC::H;
     constexpr const char *str = "HELLO WORLD";
@@ -25,9 +27,9 @@ int main(int, char**)
     qr.encode(str, strlen(str), ecc, -1);
     qr.print();
 
-    printf("Automatic mask: %3ld clock_t\n", 
-        measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, -1));
+    // printf("Automatic mask: %3ld clock_t\n", 
+    //     measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, -1));
 
-    printf("Manual mask 0:  %3ld clock_t\n", 
-        measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, 0));
+    // printf("Manual mask 0:  %3ld clock_t\n", 
+    //     measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, 0));
 }

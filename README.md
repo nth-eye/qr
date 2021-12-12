@@ -1,12 +1,9 @@
-# QR-cpp
-
-## Description
+# qr
 
 Simple (if you consider QR code as simple) headers-only C++ implementation of QR code generation algorithm.
 Inspiration is mainly taken from [nayuki's library][1] and some code parts are borrowed, but the approach is
 mainly different. This library is designed for convenient use when QR code version (size) is known at 
-compile time, and all necessary arrays are alocated and encapsulated in QR<> class. I hope this will increase 
-performance overall, but exact measurements were not carried out yet.
+compile time, and all necessary arrays are alocated and encapsulated in QR<> class.
 
 ## How to use
 
@@ -28,7 +25,7 @@ qr.print();
 
 // Automatic mask
 qr.encode(str, strlen(str), ecc, -1);
-// Or print manually module by module
+// Print manually module by module
 for (int y = 0; y < decltype(qr)::SIDE; ++y) {
     for (int x = 0; x < decltype(qr)::SIDE; ++x)
         printf("%s", qr.module(x, y) ? "\u2588\u2588" : "  ");
@@ -38,7 +35,6 @@ for (int y = 0; y < decltype(qr)::SIDE; ++y) {
 
 ## TODO
 
-- [x] Add data length check in `encode_data()`
-- [x] Fix numeric mode
+**_Nothing_**
 
 [1]: https://github.com/nayuki/QR-Code-generator/tree/master/cpp

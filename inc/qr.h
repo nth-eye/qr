@@ -6,8 +6,9 @@
 
 #ifndef QR_PRINT
 #define QR_PRINT(...)
-#warning "To print QR code please define QR_PRINT"
 #endif
+
+namespace qr {
 
 template<int V>
 struct QR {
@@ -112,13 +113,13 @@ bool QR<V>::encode(const char *str, size_t len, ECC ecc, int mask)
 template<int V>
 bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
 {
-    Mode mode = QR_SelectMode(data, len);
+    Mode mode = select_mode(data, len);
 
     size_t n_bits = (N_DAT_CAPACITY - ECC_CODEWORDS_PER_BLOCK[ecc][V] * N_ECC_BLOCKS[ecc][V]) << 3;
     size_t pos = 0;
 
     add_bits(1 << mode, 4, out, pos);
-    add_bits(len, QR_CCI(V, mode), out, pos);
+    add_bits(len, cci(V, mode), out, pos);
 
     if (mode == M_NUMERIC) {
 
@@ -156,14 +157,14 @@ bool QR<V>::encode_data(const char *data, size_t len, ECC ecc, uint8_t *out)
             return false;
 
         for (int i = 0; i < int(len & ~1ul); i += 2) {
-            uint16_t num = QR_Alphanumeric(data[i]) * 45 + QR_Alphanumeric(data[i + 1]);
+            uint16_t num = alphanumeric(data[i]) * 45 + alphanumeric(data[i + 1]);
             add_bits(num, 11, out, pos);
         }
         if (len & 1) {
             if (pos + 6 > n_bits)
                 return false;
 
-            add_bits(QR_Alphanumeric(data[len - 1]), 6, out, pos);
+            add_bits(alphanumeric(data[len - 1]), 6, out, pos);
         }
 
     } else if (mode == M_BYTE) {
@@ -217,7 +218,7 @@ void QR<V>::encode_ecc(const uint8_t *data, ECC ecc, uint8_t *out)
     uint8_t gen_poly[30];
     uint8_t ecc_buf[30];
 
-    GF_GenPoly(ecc_len, gen_poly);
+    gf_gen_poly(ecc_len, gen_poly);
 
     const uint8_t *data_ptr = data;
 
@@ -228,7 +229,7 @@ void QR<V>::encode_ecc(const uint8_t *data, ECC ecc, uint8_t *out)
         if (i >= n_short_blocks)
             ++data_len;
 
-        GF_PolyDiv(data_ptr, data_len, gen_poly, ecc_len, ecc_buf);
+        gf_poly_div(data_ptr, data_len, gen_poly, ecc_len, ecc_buf);
 
         for (int j = 0, k = i; j < data_len; ++j, k += n_blocks) {
             if (j == short_len)
@@ -575,4 +576,6 @@ void QR<V>::apply_mask(int mask, const uint8_t *patterns)
     }
 }
 
-#endif // QR_H
+}
+
+#endif
