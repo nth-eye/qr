@@ -11,30 +11,24 @@ User must choose appropriate QR code version, Error Correction Level and either 
 as `-1` to select automaically.
 
 ```cpp
-constexpr int ver = 3;
-constexpr ECC ecc = ECC::H;
+constexpr auto ver = 3;
+constexpr auto ecc = qr::Ecc::H;
+constexpr auto str = "HELLO WORLD";
 
-const char *str = "HELLO WORLD";
+qr::Qr<ver> codec;
 
-QR<ver> qr;
+codec.encode(str, strlen(str), ecc, 0); // Manual mask 0
+codec.encode(str, strlen(str), ecc, -1); // Automatic mask
 
-// Manual mask 0
-qr.encode(str, strlen(str), ecc, 0);
-// Use small test print method to view code. NOTE: You need to define QR_PRINT
-qr.print();
-
-// Automatic mask
-qr.encode(str, strlen(str), ecc, -1);
-// Print manually module by module
-for (int y = 0; y < decltype(qr)::SIDE; ++y) {
-    for (int x = 0; x < decltype(qr)::SIDE; ++x)
-        printf("%s", qr.module(x, y) ? "\u2588\u2588" : "  ");
+for (int y = 0; y < codec.side_size(); ++y) { // Print manually module by module
+    for (int x = 0; x < codec.side_size(); ++x)
+        printf("%s", codec.module(x, y) ? "\u2588\u2588" : "  ");
     printf("\n");
 }
 ```
 
 ## TODO
 
-**_Nothing_**
+- [ ] tests
 
 [1]: https://github.com/nayuki/QR-Code-generator/tree/master/cpp

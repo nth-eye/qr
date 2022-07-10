@@ -1,35 +1,36 @@
-#include <cstdio>
-#include <ctime>
-#define QR_PRINT printf
 #include "qr.h"
+#include "utl/time.h"
+#include <cstdio>
 
-template<size_t N = 1, class Fn, class Ptr, class ...Args>
-clock_t measure_time(Fn &&fn, Ptr *ptr, Args &&...args)
+template<class T>
+void print_qr(const T &codec)
 {
-    clock_t begin = clock();
-    for (size_t i = 0; i < N; ++i) 
-        (ptr->*fn)(args...);
-    clock_t end = clock();
-
-    return (end - begin) / N;
+    printf("\n\n\n\n");
+    for (int y = 0; y < codec.side_size(); ++y) {
+        printf("        ");
+        for (int x = 0; x < codec.side_size(); ++x)
+            printf(codec.module(x, y) ? "\u2588\u2588" : "  ");
+        printf("\n");
+    }
+    printf("\n\n\n\n");
 }
 
 int main(int, char**) 
 {
-    using namespace qr;
-    
-    constexpr int ver = 3;
-    constexpr ECC ecc = ECC::H;
-    constexpr const char *str = "HELLO WORLD";
+    constexpr auto ver = 3;
+    constexpr auto ecc = qr::Ecc::H;
+    constexpr auto str = "HELLO WORLD";
 
-    QR<ver> qr;
+    qr::Qr<ver> qr;
 
     qr.encode(str, strlen(str), ecc, -1);
-    qr.print();
+    print_qr(qr);
+    qr.encode(str, strlen(str), ecc, 0);
+    print_qr(qr);
 
     // printf("Automatic mask: %3ld clock_t\n", 
-    //     measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, -1));
+    //     utl::m_exec_time<10000>(&qr::Qr<ver>::encode, &qr, str, strlen(str), ecc, -1));
 
     // printf("Manual mask 0:  %3ld clock_t\n", 
-    //     measure_time<10000>(&QR<ver>::encode, &qr, str, strlen(str), ecc, 0));
+    //     utl::m_exec_time<10000>(&qr::Qr<ver>::encode, &qr, str, strlen(str), ecc, 0));
 }
