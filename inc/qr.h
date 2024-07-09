@@ -1,14 +1,11 @@
 #ifndef QR_H
 #define QR_H
 
-#include "utl/bit.h"
-#include "utl/math.h"
+#include <cstdint>
 #include <cstring>
 #include <cmath>
 
 namespace qr {
-
-using namespace utl;
 
 // Size of Ecc block with respect to level and version. 0 version is for padding.
 constexpr int ECC_CODEWORDS_PER_BLOCK[4][41] = {
@@ -71,10 +68,52 @@ constexpr int ALIGN_POS[41][7] = {
     { 6, 30, 58, 86, 114, 142, 170 },
 };
 
+// How many bytes necessary to store `n` bits.
+constexpr size_t bytes_in_bits(size_t n)
+{ 
+    return (n >> 3) + !!(n & 7);
+}
+
 // Return n-th bit of arr starting from MSB.
 constexpr uint8_t get_bit_r(const uint8_t *arr, int n)
 {
     return (arr[n >> 3] >> (7 - (n & 7))) & 1;
+}
+
+// Get n-th bit of an integer.
+constexpr bool get_bit(uint8_t x, unsigned n)
+{
+    return (x >> n) & 1; 
+}
+
+// Set n-th bit of an integer.
+constexpr void set_bit(uint8_t& x, unsigned n)
+{
+    x |= (1 << n); 
+}
+
+// Clear n-th bit of an integer.
+constexpr void clr_bit(uint8_t& x, unsigned n)
+{
+    x &= ~(1 << n); 
+}
+
+// Get n-th bit in array of words (starting from LSB).
+constexpr uint8_t get_arr_bit(const uint8_t* p, unsigned n)
+{
+    return get_bit(p[n >> 3], n & 7);
+}
+
+// Set n-th bit in array of words (starting from LSB).
+constexpr void set_arr_bit(uint8_t* p, unsigned n)
+{
+    set_bit(p[n >> 3], n & 7);
+}
+
+// Clear n-th bit in array of words (starting from LSB).
+constexpr void clr_arr_bit(uint8_t* p, int n)
+{
+    clr_bit(p[n >> 3], n & 7);
 }
 
 // Add up to 16 bits to arr. Data starts from MSB as well as each byte of an array.
@@ -139,6 +178,20 @@ constexpr bool is_kanji(const char *str, size_t len)
     return true;
 }
 
+// Galois 2^8 field multiplication.
+constexpr uint8_t gf_mul(uint8_t x, uint8_t y) 
+{
+    uint8_t r = 0; 
+
+    while (y) {
+        if (y & 1)
+            r ^= x; 
+        x = (x << 1) ^ ((x >> 7) * 0x11d);
+        y >>= 1;
+    }
+    return r;
+}
+
 // Reed-Solomon Ecc generator polynomial for the given degree.
 constexpr void gf_gen_poly(int degree, uint8_t *poly)
 {
@@ -157,7 +210,6 @@ constexpr void gf_gen_poly(int degree, uint8_t *poly)
 // Polynomial division if Galois Field.
 constexpr void gf_poly_div(const uint8_t *dividend, size_t len, const uint8_t *divisor, int degree, uint8_t *result) 
 {
-    using namespace utl;
     memset(result, 0, degree);
 
     for (size_t i = 0; i < len; ++i) {

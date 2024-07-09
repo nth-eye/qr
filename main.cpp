@@ -1,5 +1,4 @@
 #include "qr.h"
-#include "utl/time.h"
 #include <cstdio>
 
 template<class T>
@@ -27,10 +26,4 @@ int main(int, char**)
     print_qr(qr);
     qr.encode(str, strlen(str), ecc, 0);
     print_qr(qr);
-
-    // printf("Automatic mask: %3ld clock_t\n", 
-    //     utl::m_exec_time<10000>(&qr::Qr<ver>::encode, &qr, str, strlen(str), ecc, -1));
-
-    // printf("Manual mask 0:  %3ld clock_t\n", 
-    //     utl::m_exec_time<10000>(&qr::Qr<ver>::encode, &qr, str, strlen(str), ecc, 0));
 }
